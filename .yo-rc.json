@@ -1,0 +1,19 @@
+{
+  "generator-plugin-wp": {
+    "name": "WC Guest Order Account Setup",
+    "homepage": "https://catmanstudios.com",
+    "description": "Creates accounts or maps orders to existing account from billing email",
+    "version": "0.0.0",
+    "author": "Bryan Headrick",
+    "authoremail": "info@catmanstudios.com",
+    "authorurl": "https://catmanstudios.com",
+    "license": "GPLv2",
+    "slug": "wc-guest-order-account-setup",
+    "classname": "WC_Guest_Order_Account_Setup",
+    "mainclassname": "WC_Guest_Order_Account_Setup",
+    "classprefix": "WCGOAS_",
+    "prefix": "wc_guest_order_account_setup",
+    "year": 2019,
+    "currentVersionWP": "4.7.2"
+  }
+}
