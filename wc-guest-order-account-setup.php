@@ -161,8 +161,100 @@ final class WC_Guest_Order_Account_Setup {
 	public function hooks() {
 		add_action( 'init', array( $this, 'init' ), 0 );
 		add_action('woocommerce_checkout_update_order_meta', array($this, 'save_data'), 100, 2);
+
+        //Runs on User Registration
+		add_action( 'user_register',[$this, 'initial_match_past_orders'], 10, 1 );
+		add_action('wp_login', [$this,'returning_match_past_orders'], 10, 2);
+	}
+	public function initial_match_past_orders( $user_id ) {
+
+		//Get current users's e-mail from ID
+		$current_user = get_user_by( 'ID', $user_id );
+		$email = $current_user->user_email;
+
+		//Pulls all orders made with the user e-mail as the billing e-mail
+		$customer_orders = get_posts( array(
+			'meta_key'    => '_billing_email',
+			'meta_value'  => "$email",
+			'post_type'   => 'shop_order',
+			'post_status' => 'any',
+			'numberposts'=>-1
+		) );
+
+		//If matching orders are found..
+		if (!empty($customer_orders)) {
+
+			global $wpdb;
+			$prefix = $wpdb->prefix;
+			$table=$prefix.'woocommerce_downloadable_product_permissions';
+			$data = array('user_id'=>"$user_id");
+			$where = array('user_email'=>"$email",'user_id'=>'0');
+
+			//Updates all downloads with the same e-mail but user_id=0 (guest) to the correct user ID
+			$wpdb->update( $table, $data, $where, $format = null, $where_format = null );
+
+
+			//Updates all WC Orders with the e-mail to map to the correct user ID
+			foreach($customer_orders as $k => $v){
+
+				$order_id = $customer_orders[ $k ]->ID;
+				update_post_meta( $order_id, '_customer_user', $user_id, 0);
+			}
+		}
 	}
 
+	public function returning_match_past_orders($user_login, $current_user) {
+
+		//Gets current user ID and e-mail
+		$user_id = $current_user->ID;
+
+		$email = $current_user->user_email;
+
+
+		//Pulls all orders made with the user e-mail as the billing e-mail but is a guest order
+		$customer_orders = get_posts( array(
+
+			'post_type'   => 'shop_order',
+			'post_status' => 'any',
+			'numberposts'=>-1,
+            'meta_query'=>[
+	            'relation' => 'AND',
+                'email'=>[
+                        'key'=>'_billing_email',
+                        'value'=>"$email"
+                ],
+                'customer_user'=>[
+                        'key'=>'_customer_user',
+                    'value'=>'0'
+                ]
+            ]
+		) );
+
+		//If matching orders are found..
+
+		if (!empty($customer_orders)) {
+
+			global $wpdb;
+			$prefix = $wpdb->prefix;
+			$table=$prefix.'woocommerce_downloadable_product_permissions';
+			$data = array('user_id'=>"$user_id");
+			$where = array('user_email'=>"$email",'user_id'=>'0');
+
+
+			//Updates all downloads with the same e-mail but user_id=0 (guest) to the correct user ID
+			$wpdb->update( $table, $data, $where, $format = null, $where_format = null );
+
+
+			//Updates all WC Orders with the e-mail to map to the correct user ID
+			foreach($customer_orders as $k => $v){
+
+				$order_id = $customer_orders[ $k ]->ID;
+				update_post_meta( $order_id, '_customer_user', $user_id, 0);
+
+			}
+		}
+
+	}
 	public function save_data($order_id, $posted){
 
 
