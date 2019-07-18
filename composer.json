@@ -1,0 +1,11 @@
+{
+    "name": "bheadrick/wc-guest-order-account-setup",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Bryan Headrick",
+            "email": "bryan@poolwarehouse.com"
+        }
+    ],
+    "require": {}
+}
